@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="傾倒">
+<meta name="theme-color" content="#faf9f7">
+<title>傾倒 · 夜光卡片</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--font);padding-bottom:calc(84px + env(safe-area-inset-bottom));min-height:100vh}
+header{position:sticky;top:0;z-index:5;background:var(--hbg,var(--bg));padding:calc(14px + env(safe-area-inset-top)) 20px 12px;display:flex;justify-content:space-between;align-items:baseline}
+h1{font:var(--hw,700) 24px/1.2 var(--head);margin:0;letter-spacing:.02em}
+#today{color:var(--mute);font-size:13px}
+main{padding:8px 16px 16px}
+.view{display:none}.view.on{display:block}
+textarea{width:100%;border:var(--bw,1px) solid var(--line);border-radius:var(--r);padding:16px;font:inherit;background:var(--card);color:var(--ink);box-shadow:var(--sh);outline:none}
+textarea:focus{border-color:var(--accent)}
+textarea::placeholder{color:var(--mute)}
+#dump{min-height:42vh;font-size:17px;line-height:1.7}
+.hint{color:var(--mute);font-size:13px;margin:8px 4px 14px}
+button{font:inherit;border:0;border-radius:var(--rb);padding:14px 16px;background:var(--btn);color:var(--btn-ink);font-weight:700;cursor:pointer}
+button:disabled{opacity:.4}
+.full{width:100%}
+#btnGo{box-shadow:var(--btn-sh);font-size:17px;letter-spacing:.1em}
+.sm{background:var(--chip);color:var(--accent);border:1px solid var(--line);padding:8px 12px;font-size:14px;font-weight:600;box-shadow:none}
+.sm.warn{color:var(--hi)}
+.summary{font:var(--hw,600) 17px/1.6 var(--head);margin:22px 4px 6px}
+.thought{color:var(--ink2,var(--mute));font-size:15px;padding:12px 14px;margin:8px 0;background:var(--soft);border-radius:var(--rs)}
+h2{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mute);font-weight:700;margin:22px 4px 8px;letter-spacing:.08em}
+h2 .cnt{font-size:11px;background:var(--soft);color:var(--mute);border-radius:99px;padding:1px 8px}
+h2.late{color:var(--hi)}h2.late .cnt{background:var(--hi);color:#fff}
+.card{display:grid;grid-template-columns:auto 1fr;gap:0 12px;align-items:start;background:var(--card);border:var(--bw,1px) solid var(--line);border-radius:var(--r);padding:14px;margin:8px 0;box-shadow:var(--sh);position:relative}
+.body{cursor:pointer;min-width:0}
+.t{font-weight:600;font-size:16px}
+.meta{color:var(--mute);font-size:13px;margin-top:1px}
+.chk{width:24px;height:24px;padding:0;border-radius:50%;background:transparent;border:2px solid var(--pc,var(--lo));margin-top:1px;box-shadow:none}
+.prio-high{--pc:var(--hi)}.prio-medium{--pc:var(--mid)}.prio-low{--pc:var(--lo)}
+.done .chk{background:var(--accent);border-color:var(--accent);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-size:16px;background-position:center;background-repeat:no-repeat}
+.done .t{text-decoration:line-through;color:var(--mute)}
+.edit{display:none;grid-column:1/-1;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.card.open .edit{display:block}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center}
+input{font:inherit;font-size:15px;padding:9px;border:1px solid var(--line);border-radius:var(--rs);background:var(--inp,var(--card));color:var(--ink);color-scheme:var(--scheme,light)}
+.empty{color:var(--mute);font-size:14px;padding:8px 4px}
+label{display:block;font-size:14px;color:var(--mute);margin:16px 0 4px}
+label input,label textarea{width:100%;margin-top:4px}
+#routine{min-height:120px;font-size:15px}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--nav);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);z-index:6;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+nav button{flex:1;background:none;color:var(--mute);border-radius:0;padding:16px 0;font-weight:600;box-shadow:none}
+nav button.on{color:var(--accent)}
+#login{display:none;text-align:center;padding:30vh 24px 0}
+.toast{position:fixed;left:16px;right:16px;bottom:calc(90px + env(safe-area-inset-bottom));background:#1f1f1f;color:#fff;padding:12px 14px;border-radius:12px;font-size:14px;display:none;z-index:9}
+
+:root{--bg:#0f1117;--card:#191c25;--ink:#eef0f6;--ink2:#c3c7d4;--mute:#8189a0;--line:#262a36;--accent:#9b8cff;--btn:linear-gradient(135deg,#8a7bff,#4fd1c5);--btn-ink:#0f1117;--chip:#20242f;--soft:#1f2330;
+--hi:#ff6b6b;--mid:#f7c948;--lo:#5c6378;--r:18px;--rb:16px;--rs:12px;--sh:0 8px 24px rgba(0,0,0,.25);--btn-sh:0 10px 30px rgba(138,123,255,.35);--nav:rgba(15,17,23,.85);--hbg:rgba(15,17,23,.85);--inp:#12141b;--scheme:dark;
+--font:-apple-system,"PingFang TC","Noto Sans TC",sans-serif;--head:var(--font);--hw:800}
+body{background:radial-gradient(120% 60% at 100% 0%,#1d1840 0%,#0f1117 55%)}
+h1{background:linear-gradient(90deg,#c9c1ff,#7ee8dc);-webkit-background-clip:text;background-clip:text;color:transparent}
+#btnGo{background:var(--btn)}
+.thought{border:1px solid var(--line)}
+.card{border-left:4px solid var(--pc)}
+.summary{color:#d9d4ff}
+nav button.on{color:#c9c1ff}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <h1>傾倒</h1>
+  <p>把腦袋裡的東西全倒出來，剩下的交給它。</p>
+  <button id="btnLogin" class="full">用 Google 登入</button>
+</div>
+
+<div id="app" style="display:none">
+<header><h1 id="title">傾倒</h1><span id="today"></span></header>
+<main>
+  <section id="v-dump" class="view on">
+    <textarea id="dump" data-x placeholder="想到什麼就寫什麼，不用整理、不用標點。&#10;例：明天要交盤點表 下週三前回老師信 好累 月底記得繳電費 那個IMD還沒追…"></textarea>
+    <div class="hint">按鍵盤上的 🎤 就能用講的（手機內建聽寫）。內容會自動暫存。</div>
+    <button id="btnGo" class="full">整理</button>
+    <div id="result"></div>
+  </section>
+
+  <section id="v-tasks" class="view"><div id="taskList"></div></section>
+
+  <section id="v-set" class="view">
+    <label>Worker 網址<input id="workerUrl" type="url" placeholder="https://xxx.workers.dev"></label>
+    <label>通關密碼<input id="appPass" type="password"></label>
+    <label>我的固定作息（AI 排時間時會避開）<textarea id="routine"></textarea></label>
+    <div class="row"><button id="btnSave">儲存設定</button><button id="btnLogout" class="sm">登出</button></div>
+  </section>
+</main>
+<nav>
+  <button data-v="dump" class="on">傾倒</button>
+  <button data-v="tasks">任務</button>
+  <button data-v="set">設定</button>
+</nav>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+// ===== 展示用假資料（正式版沒有這段）=====
+const T=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Istanbul"}).format(new Date());
+const add=n=>{const d=new Date(T);d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)};
+let store=[
+ {id:"a",title:"交經常費週轉金盤點表",date:T,time:"10:00",duration:60,priority:"high",note:"月底前要給主管",done:false},
+ {id:"b",title:"回覆 IMD 廠商報價信",date:T,time:"15:30",duration:30,priority:"medium",note:"",done:false},
+ {id:"c",title:"繳電費",date:add(3),time:"",duration:15,priority:"medium",note:"",done:false},
+ {id:"d",title:"查里斯本三月機票",date:"",time:"",duration:30,priority:"low",note:"",done:false},
+ {id:"e",title:"補交上週計程車收據",date:add(-1),time:"09:30",duration:15,priority:"high",note:"",done:false},
+ {id:"f",title:"買皮拉提斯襪",date:"",time:"",duration:20,priority:"low",note:"",done:true}];
+let snapCb=null;const emit=()=>snapCb&&snapCb({docs:store.map(t=>({id:t.id,data:()=>({...t})}))});
+const initializeApp=()=>({}),getAuth=()=>({}),getFirestore=()=>({});
+class GoogleAuthProvider{};const signInWithPopup=async()=>{},signOut=async()=>alert("展示版不能登出");
+const onAuthStateChanged=(a,cb)=>setTimeout(()=>cb({uid:"demo"}));
+const collection=(...p)=>p.slice(1).join("/"),doc=(...p)=>({path:p.slice(1).join("/"),id:p[p.length-1]||Math.random().toString(36).slice(2)});
+const getDoc=async()=>({exists:()=>false}),setDoc=async()=>{},addDoc=async()=>({id:"x"});
+const query=c=>c,orderBy=()=>0,serverTimestamp=()=>0;
+const onSnapshot=(q,cb)=>{snapCb=cb;emit();return()=>{}};
+const updateDoc=async(r,d)=>{Object.assign(store.find(t=>t.id===r.id),d);emit()};
+const deleteDoc=async r=>{store=store.filter(t=>t.id!==r.id);emit()};
+const writeBatch=()=>{const q=[];return{set:(r,d)=>q.push({...d,id:r.id}),commit:async()=>{store=[...q,...store];emit()}}};
+localStorage.workerUrl="demo";
+window.fetch=async()=>{await new Promise(r=>setTimeout(r,900));return{ok:true,json:async()=>({
+ summary:"你今天事情不少，但真正急的只有兩件，其他可以慢慢來。",
+ thoughts:["覺得最近很累，這很正常，剛到新環境本來就耗神。","擔心土文進度跟不上，先記著就好，不用今天解決。"],
+ tasks:[{title:"打電話給房東約修熱水器",date:add(1),time:"12:30",duration_min:15,priority:"high",note:""},
+        {title:"準備週三土文作業",date:add(2),time:"19:00",duration_min:45,priority:"medium",note:""}]})}};
+// ▼▼▼ 步驟 4：把 Firebase 給你的設定貼在這裡 ▼▼▼
+const firebaseConfig = {
+  apiKey: "AIzaSyBd0SJT784e4i5791vIE7Kv_IqhN4OkyPA",
+  authDomain: "reminder-99b9a.firebaseapp.com",
+  projectId: "reminder-99b9a",
+  storageBucket: "reminder-99b9a.firebasestorage.app",
+  messagingSenderId: "635703691121",
+  appId: "1:635703691121:web:7dce5973697a759c3458d0"
+};
+// ▲▲▲
+
+const TZ = "Europe/Istanbul";
+const DEFAULT_ROUTINE = "週一、週四、週六：皮拉提斯（時間：  ）\n週三：土耳其語課（時間：  ）\n平日上班 9:00–18:00\n月底、月初：記帳盤點很忙，盡量別排雜事";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const $ = s => document.querySelector(s);
+let uid = null, routine = DEFAULT_ROUTINE, unsub = null, tasks = [];
+
+const todayStr = () => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(new Date());
+const weekdayStr = () => new Date().toLocaleDateString("zh-TW", { weekday: "long", timeZone: TZ });
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.style.display = "block"; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = "none", 3500); }
+
+// ---------- 登入 ----------
+$("#btnLogin").onclick = () => signInWithPopup(auth, new GoogleAuthProvider()).catch(e => toast("登入失敗：" + e.message));
+$("#btnLogout").onclick = () => signOut(auth);
+
+onAuthStateChanged(auth, async u => {
+  if (unsub) { unsub(); unsub = null; }
+  if (!u) { uid = null; $("#login").style.display = "block"; $("#app").style.display = "none"; return; }
+  uid = u.uid;
+  $("#login").style.display = "none"; $("#app").style.display = "block";
+  $("#today").textContent = todayStr() + " " + weekdayStr();
+  $("#workerUrl").value = localStorage.workerUrl || "";
+  $("#appPass").value = localStorage.appPass || "";
+  const s = await getDoc(doc(db, "users", uid));
+  routine = s.exists() && s.data().routine ? s.data().routine : DEFAULT_ROUTINE;
+  $("#routine").value = routine;
+  unsub = onSnapshot(query(collection(db, "users", uid, "tasks"), orderBy("createdAt", "desc")), snap => {
+    tasks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderTasks();
+  });
+});
+
+// ---------- 分頁 ----------
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => go(b.dataset.v));
+function go(v) {
+  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.v === v));
+  document.querySelectorAll(".view").forEach(s => s.classList.toggle("on", s.id === "v-" + v));
+  $("#title").textContent = { dump: "傾倒", tasks: "任務", set: "設定" }[v];
+  window.scrollTo(0, 0);
+}
+
+// ---------- 傾倒 ----------
+$("#dump").value = "好累 明天要打給房東熱水器又壞了 週三土文作業還沒寫 怕跟不上…";
+$("#dump").oninput = e => localStorage.draft = e.target.value;
+
+$("#btnGo").onclick = async () => {
+  const text = $("#dump").value.trim();
+  if (!text) return toast("先寫點什麼");
+  if (!localStorage.workerUrl) { toast("先到設定填 Worker 網址"); return go("set"); }
+  const btn = $("#btnGo"); btn.disabled = true; btn.textContent = "整理中…";
+  try {
+    const r = await fetch(localStorage.workerUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-App-Pass": localStorage.appPass || "" },
+      body: JSON.stringify({ text, today: todayStr(), weekday: weekdayStr(), routine })
+    });
+    const data = await r.json().catch(() => ({ error: "伺服器沒有回應" }));
+    if (!r.ok || data.error) throw new Error(data.error || r.status);
+
+    const dumpRef = await addDoc(collection(db, "users", uid, "dumps"), {
+      text, summary: data.summary || "", thoughts: data.thoughts || [], createdAt: serverTimestamp()
+    });
+    const batch = writeBatch(db);
+    (data.tasks || []).forEach(t => batch.set(doc(collection(db, "users", uid, "tasks")), {
+      title: t.title || "（未命名）", date: t.date || "", time: t.time || "",
+      duration: t.duration_min || 30, priority: t.priority || "medium", note: t.note || "",
+      done: false, dumpId: dumpRef.id, createdAt: serverTimestamp()
+    }));
+    await batch.commit();
+
+    $("#dump").value = ""; localStorage.draft = "";
+    const n = (data.tasks || []).length;
+    $("#result").innerHTML =
+      `<p class="summary">${esc(data.summary)}</p>` +
+      (data.thoughts?.length ? `<h2>這些不用做，只是放下</h2>` + data.thoughts.map(t => `<div class="thought">${esc(t)}</div>`).join("") : "") +
+      `<h2>新增了 ${n} 個任務</h2>` +
+      (n ? `<button class="full sm" id="toTasks">去看任務、排進行事曆</button>` : `<div class="empty">這次沒有需要做的事。</div>`);
+    const tt = $("#toTasks"); if (tt) tt.onclick = () => go("tasks");
+  } catch (e) {
+    toast("整理失敗：" + e.message + "（原文還在）");
+  } finally {
+    btn.disabled = false; btn.textContent = "整理";
+  }
+};
+
+// ---------- 任務 ----------
+function renderTasks() {
+  const today = todayStr();
+  const open = tasks.filter(t => !t.done);
+  const byDate = (a, b) => (a.date + a.time).localeCompare(b.date + b.time);
+  const groups = [
+    ["逾期", open.filter(t => t.date && t.date < today).sort(byDate), "late"],
+    ["今天", open.filter(t => t.date === today).sort(byDate)],
+    ["之後", open.filter(t => t.date > today).sort(byDate)],
+    ["還沒排日期", open.filter(t => !t.date)],
+    ["已完成", tasks.filter(t => t.done).slice(0, 20)]
+  ];
+  let html = "";
+  for (const [name, list, cls] of groups) {
+    if (!list.length) continue;
+    html += `<h2 class="${cls || ""}">${name}<span class="cnt">${list.length}</span></h2>` + list.map(card).join("");
+  }
+  $("#taskList").innerHTML = html || `<div class="empty">還沒有任務。去「傾倒」寫點東西吧。</div>`;
+}
+
+function card(t) {
+  const d = t.date ? t.date.slice(5).replace("-", "/") : "";
+  const meta = [d, t.time, t.duration ? t.duration + " 分" : "", t.note].filter(Boolean).map(esc).join(" · ");
+  const hasDate = !!t.date;
+  return `<div class="card prio-${esc(t.priority)} ${t.done ? "done" : ""}" data-id="${t.id}">
+    <button class="chk" data-a="${t.done ? "undo" : "done"}" aria-label="完成"></button>
+    <div class="body" data-a="toggle">
+      <div class="t">${esc(t.title)}</div>
+      ${meta ? `<div class="meta">${meta}</div>` : ""}
+    </div>
+    <div class="edit">
+      ${t.done ? "" : `<div class="row"><input type="date" data-f="date" value="${esc(t.date)}"><input type="time" data-f="time" value="${esc(t.time)}"></div>`}
+      <div class="row">
+        ${t.done ? "" : `<button class="sm" data-a="gcal" ${hasDate ? "" : "disabled"}>加入 Google 日曆</button>
+        <button class="sm" data-a="ics" ${hasDate ? "" : "disabled"}>Apple 日曆</button>`}
+        <button class="sm warn" data-a="del">刪除</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+$("#taskList").addEventListener("click", async e => {
+  const b = e.target.closest("[data-a]"); if (!b) return;
+  if (b.dataset.a === "toggle") { b.closest(".card").classList.toggle("open"); return; }
+  const id = b.closest(".card").dataset.id, t = tasks.find(x => x.id === id), ref = doc(db, "users", uid, "tasks", id);
+  const a = b.dataset.a;
+  if (a === "gcal") window.open(gcalUrl(t), "_blank");
+  if (a === "ics") downloadIcs(t);
+  if (a === "done") updateDoc(ref, { done: true });
+  if (a === "undo") updateDoc(ref, { done: false });
+  if (a === "del" && confirm("刪除「" + t.title + "」？")) deleteDoc(ref);
+});
+$("#taskList").addEventListener("change", e => {
+  const f = e.target.dataset.f; if (!f) return;
+  updateDoc(doc(db, "users", uid, "tasks", e.target.closest(".card").dataset.id), { [f]: e.target.value });
+});
+
+// ---------- 行事曆 ----------
+// 伊斯坦堡全年 UTC+3、沒有夏令時間，所以直接換算
+const wall = t => { const [y, m, d] = t.date.split("-").map(Number); const [h, mi] = (t.time || "00:00").split(":").map(Number); return new Date(Date.UTC(y, m - 1, d, h, mi)); };
+const fmt = x => x.toISOString().slice(0, 16).replace(/[-:]/g, "") + "00";
+const ymd = x => x.toISOString().slice(0, 10).replace(/-/g, "");
+const addMin = (x, n) => new Date(x.getTime() + n * 60000);
+
+function gcalUrl(t) {
+  const p = new URLSearchParams({ action: "TEMPLATE", text: t.title, details: t.note || "" });
+  const s = wall(t);
+  if (t.time) { p.set("dates", fmt(s) + "/" + fmt(addMin(s, t.duration || 30))); p.set("ctz", TZ); }
+  else p.set("dates", ymd(s) + "/" + ymd(addMin(s, 1440)));
+  return "https://calendar.google.com/calendar/render?" + p;
+}
+
+function downloadIcs(t) {
+  const s = wall(t);
+  const utc = x => fmt(addMin(x, -180)) + "Z";
+  const when = t.time
+    ? `DTSTART:${utc(s)}\r\nDTEND:${utc(addMin(s, t.duration || 30))}`
+    : `DTSTART;VALUE=DATE:${ymd(s)}\r\nDTEND;VALUE=DATE:${ymd(addMin(s, 1440))}`;
+  const icsEsc = v => String(v || "").replace(/[\\;,]/g, m => "\\" + m).replace(/\n/g, "\\n");
+  const ics = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//dump//ZH\r\nBEGIN:VEVENT\r\nUID:${t.id}@dump\r\nDTSTAMP:${fmt(new Date())}Z\r\n${when}\r\nSUMMARY:${icsEsc(t.title)}\r\nDESCRIPTION:${icsEsc(t.note)}\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n`;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar" }));
+  a.download = "task.ics"; a.click();
+}
+
+// ---------- 設定 ----------
+$("#btnSave").onclick = async () => {
+  localStorage.workerUrl = $("#workerUrl").value.trim();
+  localStorage.appPass = $("#appPass").value;
+  routine = $("#routine").value;
+  await setDoc(doc(db, "users", uid), { routine }, { merge: true });
+  toast("已儲存");
+};
+</script>
+</body>
+</html>
