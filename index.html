@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="傾倒">
 <meta name="theme-color" content="#faf9f7">
-<title>傾倒 · 夜光卡片</title>
+<title>傾倒</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--font);padding-bottom:calc(84px + env(safe-area-inset-bottom));min-height:100vh}
@@ -77,7 +77,7 @@ nav button.on{color:#c9c1ff}
 <header><h1 id="title">傾倒</h1><span id="today"></span></header>
 <main>
   <section id="v-dump" class="view on">
-    <textarea id="dump" data-x placeholder="想到什麼就寫什麼，不用整理、不用標點。&#10;例：明天要交盤點表 下週三前回老師信 好累 月底記得繳電費 那個IMD還沒追…"></textarea>
+    <textarea id="dump" placeholder="想到什麼就寫什麼，不用整理、不用標點。&#10;例：明天要交盤點表 下週三前回老師信 好累 月底記得繳電費 那個IMD還沒追…"></textarea>
     <div class="hint">按鍵盤上的 🎤 就能用講的（手機內建聽寫）。內容會自動暫存。</div>
     <button id="btnGo" class="full">整理</button>
     <div id="result"></div>
@@ -101,33 +101,10 @@ nav button.on{color:#c9c1ff}
 <div class="toast" id="toast"></div>
 
 <script type="module">
-// ===== 展示用假資料（正式版沒有這段）=====
-const T=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Istanbul"}).format(new Date());
-const add=n=>{const d=new Date(T);d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)};
-let store=[
- {id:"a",title:"交經常費週轉金盤點表",date:T,time:"10:00",duration:60,priority:"high",note:"月底前要給主管",done:false},
- {id:"b",title:"回覆 IMD 廠商報價信",date:T,time:"15:30",duration:30,priority:"medium",note:"",done:false},
- {id:"c",title:"繳電費",date:add(3),time:"",duration:15,priority:"medium",note:"",done:false},
- {id:"d",title:"查里斯本三月機票",date:"",time:"",duration:30,priority:"low",note:"",done:false},
- {id:"e",title:"補交上週計程車收據",date:add(-1),time:"09:30",duration:15,priority:"high",note:"",done:false},
- {id:"f",title:"買皮拉提斯襪",date:"",time:"",duration:20,priority:"low",note:"",done:true}];
-let snapCb=null;const emit=()=>snapCb&&snapCb({docs:store.map(t=>({id:t.id,data:()=>({...t})}))});
-const initializeApp=()=>({}),getAuth=()=>({}),getFirestore=()=>({});
-class GoogleAuthProvider{};const signInWithPopup=async()=>{},signOut=async()=>alert("展示版不能登出");
-const onAuthStateChanged=(a,cb)=>setTimeout(()=>cb({uid:"demo"}));
-const collection=(...p)=>p.slice(1).join("/"),doc=(...p)=>({path:p.slice(1).join("/"),id:p[p.length-1]||Math.random().toString(36).slice(2)});
-const getDoc=async()=>({exists:()=>false}),setDoc=async()=>{},addDoc=async()=>({id:"x"});
-const query=c=>c,orderBy=()=>0,serverTimestamp=()=>0;
-const onSnapshot=(q,cb)=>{snapCb=cb;emit();return()=>{}};
-const updateDoc=async(r,d)=>{Object.assign(store.find(t=>t.id===r.id),d);emit()};
-const deleteDoc=async r=>{store=store.filter(t=>t.id!==r.id);emit()};
-const writeBatch=()=>{const q=[];return{set:(r,d)=>q.push({...d,id:r.id}),commit:async()=>{store=[...q,...store];emit()}}};
-localStorage.workerUrl="demo";
-window.fetch=async()=>{await new Promise(r=>setTimeout(r,900));return{ok:true,json:async()=>({
- summary:"你今天事情不少，但真正急的只有兩件，其他可以慢慢來。",
- thoughts:["覺得最近很累，這很正常，剛到新環境本來就耗神。","擔心土文進度跟不上，先記著就好，不用今天解決。"],
- tasks:[{title:"打電話給房東約修熱水器",date:add(1),time:"12:30",duration_min:15,priority:"high",note:""},
-        {title:"準備週三土文作業",date:add(2),time:"19:00",duration_min:45,priority:"medium",note:""}]})}};
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+import { getFirestore, collection, doc, addDoc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
 // ▼▼▼ 步驟 4：把 Firebase 給你的設定貼在這裡 ▼▼▼
 const firebaseConfig = {
   apiKey: "AIzaSyBd0SJT784e4i5791vIE7Kv_IqhN4OkyPA",
@@ -184,7 +161,7 @@ function go(v) {
 }
 
 // ---------- 傾倒 ----------
-$("#dump").value = "好累 明天要打給房東熱水器又壞了 週三土文作業還沒寫 怕跟不上…";
+$("#dump").value = localStorage.draft || "";
 $("#dump").oninput = e => localStorage.draft = e.target.value;
 
 $("#btnGo").onclick = async () => {
