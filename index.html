@@ -143,7 +143,7 @@ nav button.on{color:#c9c1ff}
 <main>
   <section id="v-dump" class="view on">
     <textarea id="dump" placeholder="想到什麼就寫什麼，不用整理、不用標點。&#10;例：明天要交盤點表 下週三前回老師信 好累 月底記得繳電費 那個IMD還沒追…"></textarea>
-    <div class="hint">按鍵盤上的 🎤 就能用講的（手機內建聽寫）。內容會自動暫存。</div>
+    <div class="hint">按鍵盤上的 🎤 就能用講的（手機內建聽寫）。內容會自動暫存，並自動標上時間。</div>
     <button id="btnGo" class="full">整理</button>
   </section>
 
@@ -290,7 +290,37 @@ function go(v) {
 
 // ---------- 傾倒 ----------
 $("#dump").value = localStorage.draft || "";
-$("#dump").oninput = e => localStorage.draft = e.target.value;
+
+// 自動蓋時間：輸入框是空的、或停頓超過 GAP_MIN 分鐘後再輸入時，在那一段前面蓋上 [HH:MM]
+// 時間是「開始寫那一段」的時間；用注音/語音等組字輸入時，會等組字結束後才插入，不會打斷輸入
+const GAP_MIN = 10;
+const nowHM = () => new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: TZ });
+let pendingStamp = null; // { pos, time }
+function armStamp(ta) {
+  if (pendingStamp) return;
+  const gap = Date.now() - Number(localStorage.lastDumpInput || 0) > GAP_MIN * 60000;
+  if (ta.value.trim() === "" || gap) pendingStamp = { pos: ta.selectionStart, time: nowHM() };
+}
+function flushStamp(ta) {
+  if (!pendingStamp) return;
+  const { pos, time } = pendingStamp; pendingStamp = null;
+  const before = ta.value.slice(0, pos);
+  const ins = (before && !before.endsWith("\n") ? "\n" : "") + "[" + time + "] ";
+  const cur = ta.selectionStart;
+  ta.setRangeText(ins, pos, pos, "preserve");
+  ta.selectionStart = ta.selectionEnd = cur + ins.length;
+}
+$("#dump").addEventListener("beforeinput", e => { if (e.inputType.startsWith("insert")) armStamp(e.target); });
+$("#dump").addEventListener("compositionstart", e => armStamp(e.target));
+$("#dump").addEventListener("compositionend", e => {
+  flushStamp(e.target);
+  localStorage.draft = e.target.value;
+});
+$("#dump").oninput = e => {
+  if (!e.isComposing) flushStamp(e.target);
+  localStorage.draft = e.target.value;
+  localStorage.lastDumpInput = Date.now();
+};
 
 $("#btnGo").onclick = async () => {
   const text = $("#dump").value.trim();
@@ -317,7 +347,7 @@ $("#btnGo").onclick = async () => {
     }));
     await batch.commit();
 
-    $("#dump").value = ""; localStorage.draft = "";
+    $("#dump").value = ""; localStorage.draft = ""; localStorage.lastDumpInput = 0; pendingStamp = null;
     const n = (data.tasks || []).length;
     $("#result").innerHTML =
       `<button class="x" id="closeResult" aria-label="關閉">✕</button>` +
