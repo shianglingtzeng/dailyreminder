@@ -244,6 +244,15 @@ const weekdayStr = () => new Date().toLocaleDateString("zh-TW", { weekday: "long
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 function toast(msg) { const t = $("#toast"); t.textContent = msg; t.style.display = "block"; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = "none", 3500); }
 
+// 逾時保護：避免「整理中…」永遠轉不完
+const withTimeout = (p, ms, msg) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(msg)), ms))]);
+async function fetchTimeout(url, opts, ms = 45000) {
+  const ac = new AbortController(); const h = setTimeout(() => ac.abort(), ms);
+  try { return await fetch(url, { ...opts, signal: ac.signal }); }
+  catch (e) { if (e.name === "AbortError") throw new Error("AI 回應太久（超過 " + ms / 1000 + " 秒），請再按一次"); throw e; }
+  finally { clearTimeout(h); }
+}
+
 // ---------- 登入 ----------
 $("#btnLogin").onclick = () => signInWithPopup(auth, new GoogleAuthProvider()).catch(e => toast("登入失敗：" + e.message));
 $("#btnLogout").onclick = () => signOut(auth);
@@ -328,7 +337,8 @@ $("#btnGo").onclick = async () => {
   if (!localStorage.workerUrl) { toast("先到設定填 Worker 網址"); return go("set"); }
   const btn = $("#btnGo"); btn.disabled = true; btn.textContent = "整理中…";
   try {
-    const r = await fetch(localStorage.workerUrl, {
+    btn.textContent = "AI 整理中…";
+    const r = await fetchTimeout(localStorage.workerUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-App-Pass": localStorage.appPass || "" },
       body: JSON.stringify({ text, today: todayStr(), weekday: weekdayStr(), routine })
@@ -336,16 +346,17 @@ $("#btnGo").onclick = async () => {
     const data = await r.json().catch(() => ({ error: "伺服器沒有回應" }));
     if (!r.ok || data.error) throw new Error(data.error || r.status);
 
-    const dumpRef = await addDoc(collection(db, "users", uid, "dumps"), {
+    btn.textContent = "儲存中…";
+    const dumpRef = await withTimeout(addDoc(collection(db, "users", uid, "dumps"), {
       text, summary: data.summary || "", thoughts: data.thoughts || [], createdAt: serverTimestamp()
-    });
+    }), 20000, "資料庫沒有回應（可能是網路不穩），請稍後再按一次");
     const batch = writeBatch(db);
     (data.tasks || []).forEach(t => batch.set(doc(collection(db, "users", uid, "tasks")), {
       title: t.title || "（未命名）", date: t.date || "", time: t.time || "",
       duration: t.duration_min || 30, priority: t.priority || "medium", note: t.note || "",
       done: false, dumpId: dumpRef.id, createdAt: serverTimestamp()
     }));
-    await batch.commit();
+    await withTimeout(batch.commit(), 20000, "任務儲存沒有回應（可能是網路不穩），請到「任務」頁確認有沒有新增");
 
     $("#dump").value = ""; localStorage.draft = ""; localStorage.lastDumpInput = 0; pendingStamp = null;
     const n = (data.tasks || []).length;
