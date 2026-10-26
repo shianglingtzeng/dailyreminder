@@ -242,14 +242,31 @@ let uid = null, routine = DEFAULT_ROUTINE, unsub = null, tasks = [], subs = [], 
 const todayStr = () => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(new Date());
 const weekdayStr = () => new Date().toLocaleDateString("zh-TW", { weekday: "long", timeZone: TZ });
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-function toast(msg) { const t = $("#toast"); t.textContent = msg; t.style.display = "block"; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = "none", 3500); }
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.style.display = "block"; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = "none", msg.length > 40 ? 9000 : 3500); }
+
+// 讀 Worker 的回應：不是 JSON 時，把真正的原因顯示出來（不再只說「伺服器沒有回應」）
+async function readJson(r) {
+  const raw = await r.text().catch(() => "");
+  try { return JSON.parse(raw); } catch (e) {}
+  const plain = raw.replace(/<style[\s\S]*?<\/style>|<script[\s\S]*?<\/script>/gi, " ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  const code = (plain.match(/Error\s*(1\d{3})/) || [])[1];
+  let why = "";
+  if (!raw) why = "Worker 回傳空白內容，可能是程式中途當掉";
+  else if (code === "1101") why = "Worker 程式出錯（Error 1101），請到 Cloudflare 看 Logs";
+  else if (code === "1102") why = "Worker 執行超過時間限制（Error 1102）";
+  else if (r.status === 404 || /nothing here/i.test(plain)) why = "找不到這個 Worker，請到「設定」確認網址";
+  else if (r.status === 401 || r.status === 403) why = "通關密碼不對，請到「設定」確認";
+  else if (r.status === 429) why = "AI 呼叫太頻繁或額度用完";
+  else if (r.status >= 520 && r.status <= 524) why = "Worker 連不上 AI 或等太久";
+  return { error: (why || "Worker 回傳的不是預期資料") + `（HTTP ${r.status}）` + (plain ? "：" + plain.slice(0, 100) : "") };
+}
 
 // 逾時保護：避免「整理中…」永遠轉不完
 const withTimeout = (p, ms, msg) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error(msg)), ms))]);
 async function fetchTimeout(url, opts, ms = 45000) {
   const ac = new AbortController(); const h = setTimeout(() => ac.abort(), ms);
   try { return await fetch(url, { ...opts, signal: ac.signal }); }
-  catch (e) { if (e.name === "AbortError") throw new Error("AI 回應太久（超過 " + ms / 1000 + " 秒），請再按一次"); throw e; }
+  catch (e) { if (e.name === "AbortError") throw new Error("AI 回應太久（超過 " + ms / 1000 + " 秒），請再按一次"); throw new Error("連不到 Worker（網路斷線、網址錯誤，或 Worker 沒開放跨網域）：" + e.message); }
   finally { clearTimeout(h); }
 }
 
@@ -343,7 +360,7 @@ $("#btnGo").onclick = async () => {
       headers: { "Content-Type": "application/json", "X-App-Pass": localStorage.appPass || "" },
       body: JSON.stringify({ text, today: todayStr(), weekday: weekdayStr(), routine })
     });
-    const data = await r.json().catch(() => ({ error: "伺服器沒有回應" }));
+    const data = await readJson(r);
     if (!r.ok || data.error) throw new Error(data.error || r.status);
 
     btn.textContent = "儲存中…";
@@ -520,13 +537,13 @@ async function makeReview() {
   const openTasks = tasks.filter(t => !t.done);
   const btn = $("#btnReview"); btn.disabled = true; btn.textContent = "總結中…";
   try {
-    const r = await fetch(localStorage.workerUrl, {
+    const r = await fetchTimeout(localStorage.workerUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-App-Pass": localStorage.appPass || "" },
       body: JSON.stringify({ mode: "review", today, weekday: weekdayStr(), range, dumps: list.reverse(), doneTasks,
         openCount: openTasks.length, overdueCount: openTasks.filter(t => t.date && t.date < today).length })
     });
-    const data = await r.json().catch(() => ({ error: "伺服器沒有回應" }));
+    const data = await readJson(r);
     if (!r.ok || data.error) throw new Error(data.error || r.status);
     await setDoc(doc(db, "users", uid, "reviews", range), { ...data, dumpCount: list.length, createdAt: serverTimestamp() });
   } catch (e) {
@@ -586,10 +603,10 @@ $("#btnPresent").onclick = async () => {
   if (!localStorage.workerUrl) { toast("先到設定填 Worker 網址"); return go("set"); }
   const btn = $("#btnPresent"); btn.disabled = true; btn.textContent = "改寫中…";
   try {
-    const r = await fetch(localStorage.workerUrl, { method: "POST",
+    const r = await fetchTimeout(localStorage.workerUrl, { method: "POST",
       headers: { "Content-Type": "application/json", "X-App-Pass": localStorage.appPass || "" },
       body: JSON.stringify({ mode: "present", text, identity }) });
-    const data = await r.json().catch(() => ({ error: "伺服器沒有回應" }));
+    const data = await readJson(r);
     if (!r.ok || data.error) throw new Error(data.error || r.status);
     suggestion = data.text || "";
     $("#presentBox").innerHTML = `<div class="suggest"><div class="fe-h">改寫建議</div><div class="di-text">${esc(suggestion)}</div>
