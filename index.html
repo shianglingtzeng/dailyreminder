@@ -230,6 +230,8 @@ const firebaseConfig = {
 // ▲▲▲
 
 const TZ = "Europe/Istanbul";
+// Worker 網址不是祕密（有通關密碼和來源限制保護），直接寫在這裡，換裝置也不用重填
+const DEFAULT_WORKER = "https://aged-sea-8f8f.shianglingtzeng.workers.dev";
 const DEFAULT_ROUTINE = "週一、週四、週六：皮拉提斯（時間：  ）\n週三：土耳其語課（時間：  ）\n平日上班 9:00–18:00\n月底、月初：記帳盤點很忙，盡量別排雜事";
 
 const app = initializeApp(firebaseConfig);
@@ -244,6 +246,13 @@ const weekdayStr = () => new Date().toLocaleDateString("zh-TW", { weekday: "long
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 function toast(msg) { const t = $("#toast"); t.textContent = msg; t.style.display = "block"; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = "none", msg.length > 40 ? 9000 : 3500); }
 
+// Worker 網址：少了 https:// 時自動補上，否則瀏覽器會把它當成本網站的路徑（GitHub 會回 405）
+function workerUrl() {
+  let u = (localStorage.workerUrl || DEFAULT_WORKER).replace(/\s+/g, "");
+  if (u && !/^https?:\/\//i.test(u)) u = "https://" + u.replace(/^\/+/, "");
+  return u;
+}
+
 // 讀 Worker 的回應：不是 JSON 時，把真正的原因顯示出來（不再只說「伺服器沒有回應」）
 async function readJson(r) {
   const raw = await r.text().catch(() => "");
@@ -254,6 +263,7 @@ async function readJson(r) {
   if (!raw) why = "Worker 回傳空白內容，可能是程式中途當掉";
   else if (code === "1101") why = "Worker 程式出錯（Error 1101），請到 Cloudflare 看 Logs";
   else if (code === "1102") why = "Worker 執行超過時間限制（Error 1102）";
+  else if (r.status === 405 && /Not Allowed/i.test(plain)) why = "請求沒有送到 Worker（被 GitHub 網頁擋下）。請到「設定」確認 Worker 網址是完整的 https://….workers.dev";
   else if (r.status === 404 || /nothing here/i.test(plain)) why = "找不到這個 Worker，請到「設定」確認網址";
   else if (r.status === 401 || r.status === 403) why = "通關密碼不對，請到「設定」確認";
   else if (r.status === 429) why = "AI 呼叫太頻繁或額度用完";
@@ -281,9 +291,13 @@ onAuthStateChanged(auth, async u => {
   uid = u.uid;
   $("#login").style.display = "none"; $("#app").style.display = "block";
   $("#today").textContent = todayStr() + " " + weekdayStr();
-  $("#workerUrl").value = localStorage.workerUrl || "";
-  $("#appPass").value = localStorage.appPass || "";
   const s = await getDoc(doc(db, "users", uid));
+  // 設定存在帳號裡：手機、電腦、加到主畫面的 App 都會自動帶入
+  const cfg = s.exists() ? s.data() : {};
+  if (cfg.workerUrl) localStorage.workerUrl = cfg.workerUrl;
+  if (cfg.appPass) localStorage.appPass = cfg.appPass;
+  $("#workerUrl").value = workerUrl();
+  $("#appPass").value = localStorage.appPass || "";
   routine = s.exists() && s.data().routine ? s.data().routine : DEFAULT_ROUTINE;
   identity = (s.exists() && s.data().identity) || "";
   $("#routine").value = routine;
@@ -351,11 +365,11 @@ $("#dump").oninput = e => {
 $("#btnGo").onclick = async () => {
   const text = $("#dump").value.trim();
   if (!text) return toast("先寫點什麼");
-  if (!localStorage.workerUrl) { toast("先到設定填 Worker 網址"); return go("set"); }
+  if (!workerUrl()) { toast("先到設定填 Worker 網址"); return go("set"); }
   const btn = $("#btnGo"); btn.disabled = true; btn.textContent = "整理中…";
   try {
     btn.textContent = "AI 整理中…";
-    const r = await fetchTimeout(localStorage.workerUrl, {
+    const r = await fetchTimeout(workerUrl(), {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-App-Pass": localStorage.appPass || "" },
       body: JSON.stringify({ text, today: todayStr(), weekday: weekdayStr(), routine })
@@ -526,7 +540,7 @@ function renderReview() {
 $("#dumpList").addEventListener("click", e => { const it = e.target.closest(".dump-item"); if (it) it.classList.toggle("open"); });
 
 async function makeReview() {
-  if (!localStorage.workerUrl) { toast("先到設定填 Worker 網址"); return go("set"); }
+  if (!workerUrl()) { toast("先到設定填 Worker 網址"); return go("set"); }
   const from = since(range);
   let list = dumps.filter(d => (toDate(d.createdAt) || new Date()) >= from)
     .map(d => { const t = toDate(d.createdAt) || new Date(); return { when: dayKey(t) + " " + hm(t), text: (d.text || "").slice(0, 1500) }; });
@@ -537,7 +551,7 @@ async function makeReview() {
   const openTasks = tasks.filter(t => !t.done);
   const btn = $("#btnReview"); btn.disabled = true; btn.textContent = "總結中…";
   try {
-    const r = await fetchTimeout(localStorage.workerUrl, {
+    const r = await fetchTimeout(workerUrl(), {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-App-Pass": localStorage.appPass || "" },
       body: JSON.stringify({ mode: "review", today, weekday: weekdayStr(), range, dumps: list.reverse(), doneTasks,
@@ -600,10 +614,10 @@ $("#vision").oninput = e => {
 $("#btnPresent").onclick = async () => {
   const text = $("#vision").value.trim();
   if (!text) return toast("先寫一點內容");
-  if (!localStorage.workerUrl) { toast("先到設定填 Worker 網址"); return go("set"); }
+  if (!workerUrl()) { toast("先到設定填 Worker 網址"); return go("set"); }
   const btn = $("#btnPresent"); btn.disabled = true; btn.textContent = "改寫中…";
   try {
-    const r = await fetchTimeout(localStorage.workerUrl, { method: "POST",
+    const r = await fetchTimeout(workerUrl(), { method: "POST",
       headers: { "Content-Type": "application/json", "X-App-Pass": localStorage.appPass || "" },
       body: JSON.stringify({ mode: "present", text, identity }) });
     const data = await readJson(r);
@@ -638,10 +652,14 @@ $("#btnSaveFuture").onclick = async () => {
 
 // ---------- 設定 ----------
 $("#btnSave").onclick = async () => {
-  localStorage.workerUrl = $("#workerUrl").value.trim();
+  let wu = $("#workerUrl").value.replace(/\s+/g, "");
+  if (wu && !/^https?:\/\//i.test(wu)) wu = "https://" + wu.replace(/^\/+/, "");
+  if (wu && /github\.io/i.test(wu)) return toast("這是網頁本身的網址，請填 Cloudflare Worker 的網址（通常是 https://….workers.dev）");
+  $("#workerUrl").value = wu;
+  localStorage.workerUrl = wu;
   localStorage.appPass = $("#appPass").value;
   routine = $("#routine").value;
-  await setDoc(doc(db, "users", uid), { routine }, { merge: true });
+  await setDoc(doc(db, "users", uid), { routine, workerUrl: wu, appPass: localStorage.appPass }, { merge: true });
   toast("已儲存");
 };
 </script>
