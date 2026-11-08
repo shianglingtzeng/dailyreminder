@@ -131,6 +131,7 @@ nav button.on{color:var(--accent)}
 .card{grid-template-columns:auto 1fr auto}
 .star{width:32px;height:32px;padding:0;background:transparent;box-shadow:none;font-size:22px;line-height:1;color:var(--mute)}
 .star.on{color:var(--mid)}
+.id-ref{background:var(--soft);border-radius:var(--rs);padding:10px 12px;margin:0 0 8px;font:var(--hw,600) 16px/1.6 var(--head);color:var(--ink)}
 </style>
 </head>
 <body>
@@ -185,7 +186,8 @@ nav button.on{color:var(--accent)}
 
     <div class="step"><div class="step-n">3</div><div class="step-b">
       <div class="step-t">親手再寫一次身份宣言</div><div class="step-h">重複是重點，不要複製貼上</div>
-      <textarea id="affirm" class="short"></textarea>
+      <div class="id-ref" id="affirmRef"></div>
+      <textarea id="affirm" class="short" placeholder="照著上面的字，自己打一次"></textarea>
     </div></div>
 
     <div class="step"><div class="step-n">4</div><div class="step-b">
@@ -593,7 +595,7 @@ function renderFuture() {
   if (!uid) return;
   $("#identityText").textContent = identity || "還沒設定。只選一句，之後每天重複寫它。";
   $("#identityText").classList.toggle("unset", !identity);
-  $("#affirm").placeholder = identity || "先在上面設定身份宣言";
+  $("#affirmRef").textContent = identity || "先在上面設定身份宣言";
   const evidence = tasks.filter(t => t.futureId && t.done);
   const days = new Set(futures.map(f => dayKey(toDate(f.createdAt) || new Date())));
   let streak = 0; const d = new Date();
