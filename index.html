@@ -18,7 +18,45 @@ main{padding:8px 16px 16px}
 textarea{width:100%;border:var(--bw,1px) solid var(--line);border-radius:var(--r);padding:16px;font:inherit;background:var(--card);color:var(--ink);box-shadow:var(--sh);outline:none}
 textarea:focus{border-color:var(--accent)}
 textarea::placeholder{color:var(--mute)}
-#dump{min-height:42vh;font-size:17px;line-height:1.7}
+body.noscroll{overflow:hidden}
+.dump-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:0 2px 6px;min-height:36px}
+#dumpCount{color:var(--mute);font-size:13px}
+#bubbles{display:flex;flex-direction:column;align-items:flex-end;gap:8px;padding:4px 0 calc(150px + env(safe-area-inset-bottom))}
+.bubble{max-width:82%;text-align:left;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:18px 18px 6px 18px;padding:10px 14px;font-size:16px;font-weight:400;line-height:1.6;box-shadow:var(--sh);white-space:pre-wrap;word-break:break-word}
+.b-time{align-self:center;font-size:12px;color:var(--mute);margin-top:6px}
+.b-empty{align-self:stretch;text-align:center;color:var(--mute);font-size:15px;line-height:1.8;padding:48px 16px}
+.composer{position:fixed;left:0;right:0;bottom:calc(57px + env(safe-area-inset-bottom));z-index:5;background:var(--nav);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:10px 12px;display:none;flex-direction:column;gap:8px}
+#v-dump.on .composer{display:flex}
+.composer-in{display:flex;gap:8px;align-items:flex-end}
+#dump{flex:1;min-height:44px;max-height:160px;resize:none;border-radius:22px;padding:10px 16px;font-size:16px;line-height:1.5;box-shadow:none}
+#btnSend{width:44px;height:44px;flex:none;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center}
+#btnGo{padding:12px}
+.focus{position:fixed;inset:0;z-index:20;background:#2b2723;color:#f1ebe3;display:flex;flex-direction:column;gap:18px;padding:calc(18px + env(safe-area-inset-top)) 22px calc(18px + env(safe-area-inset-bottom))}
+.focus[hidden],.sheet[hidden]{display:none}
+.f-top{display:flex;justify-content:space-between;align-items:center}
+.f-x{width:44px;height:44px;padding:0;border-radius:50%;background:transparent;border:1px solid #4a433c;color:#cfc6ba;display:flex;align-items:center;justify-content:center;box-shadow:none}
+.f-x.light{border-color:var(--line);color:var(--mute)}
+.f-timer{display:flex;align-items:center;gap:8px;color:#cfc6ba;font-size:15px}
+.f-q small{display:block;font-size:13px;letter-spacing:.1em;color:#b3a99c;margin-bottom:6px}
+#focusQ{font:600 26px/1.45 var(--head)}
+#focusText{flex:1;background:transparent;border:0;box-shadow:none;color:#f1ebe3;font-size:18px;line-height:1.9;padding:0;resize:none}
+#focusText::placeholder{color:#8f867a}
+.f-btns{display:flex;gap:10px}.f-btns button{flex:1;min-height:52px;border-radius:16px}
+.f-ghost{background:transparent;border:1px solid #4a433c;color:#e6ddd2;box-shadow:none}
+.f-done{background:#e8b48a;color:#2b2723}
+.sheet{position:fixed;inset:0;z-index:15;background:var(--bg);overflow-y:auto;padding:calc(14px + env(safe-area-inset-top)) 16px calc(100px + env(safe-area-inset-bottom))}
+.sheet-h{display:flex;justify-content:space-between;align-items:center}
+.sheet-f{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:var(--nav);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line)}
+.k-hint{font-weight:400;letter-spacing:0;color:var(--mute)}
+h2.k-work{color:#2f5d62}h2.k-personal{color:var(--accent)}
+.sc{background:var(--card);border:1px solid var(--line);border-top:3px solid var(--lo);border-radius:var(--r);padding:10px 12px;margin:8px 0;box-shadow:var(--sh);display:flex;flex-direction:column;gap:6px}
+.sc.k-work{border-top-color:#2f5d62}.sc.k-personal{border-top-color:var(--accent)}.sc.k-drop{opacity:.6}
+.sc-t{border:0;padding:2px 0;font-weight:600;font-size:16px;background:transparent;width:100%}
+.sc-row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.pills{display:flex;gap:6px}
+.pill{font-size:13px;font-weight:600;padding:6px 11px;border-radius:99px;background:var(--card);color:var(--ink2);border:1px solid var(--line);box-shadow:none}
+.pill.on.k-work{background:#2f5d62;border-color:#2f5d62;color:#fff}.pill.on.k-personal{background:var(--accent);border-color:var(--accent);color:#fff}.pill.on.k-drop{background:var(--mute);border-color:var(--mute);color:#fff}
+.sc-stars{display:flex;gap:2px}.st{background:none;border:0;box-shadow:none;padding:2px 4px;font-size:22px;line-height:1;color:var(--line);font-weight:400}.st.on{color:#e0a020}
 .hint{color:var(--mute);font-size:13px;margin:8px 4px 14px}
 button{font:inherit;border:0;border-radius:var(--rb);padding:14px 16px;background:var(--btn);color:var(--btn-ink);font-weight:700;cursor:pointer}
 button:disabled{opacity:.4}
@@ -147,10 +185,16 @@ nav button.on{color:var(--accent)}
 <header><h1 id="title">傾倒</h1><span id="today"></span></header>
 <main>
   <section id="v-dump" class="view on">
-    <textarea id="dump" placeholder="想到什麼就寫什麼，不用整理、不用標點。&#10;例：明天要交盤點表 下週三前回老師信 好累 月底記得繳電費 那個IMD還沒追…"></textarea>
-    <div class="hint">按鍵盤上的 🎤 就能用講的（手機內建聽寫）。內容會自動暫存，並自動標上時間。</div>
-    <button id="btnGo" class="full">整理</button>
+    <div class="dump-top"><span id="dumpCount"></span><button class="sm" id="btnFocus">專注模式・3 分鐘</button></div>
     <div id="pendingBox"></div>
+    <div id="bubbles"></div>
+    <div class="composer">
+      <div class="composer-in">
+        <textarea id="dump" rows="1" placeholder="想到什麼就寫，一句一句送出" aria-label="想到什麼就寫"></textarea>
+        <button id="btnSend" aria-label="送出"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+      </div>
+      <button id="btnGo" class="full">整理</button>
+    </div>
   </section>
 
   <section id="v-tasks" class="view"><div id="result"></div><div id="taskList"></div></section>
@@ -227,6 +271,23 @@ nav button.on{color:var(--accent)}
 </nav>
 </div>
 <div class="toast" id="toast"></div>
+
+<div id="focus" class="focus" hidden>
+  <div class="f-top">
+    <button id="btnFocusX" class="f-x" aria-label="離開專注模式"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <span class="f-timer"><svg width="30" height="30" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="15" fill="none" stroke="#4a433c" stroke-width="3"/><circle id="focusRing" cx="18" cy="18" r="15" fill="none" stroke="#e8b48a" stroke-width="3" stroke-dasharray="94.2 94.2" stroke-linecap="round" transform="rotate(-90 18 18)"/></svg><span id="focusTime">3:00</span></span>
+  </div>
+  <div class="f-q"><small>三分鐘，寫到停不下來</small><div id="focusQ"></div></div>
+  <textarea id="focusText" placeholder="直接寫，不用管通不通順…" aria-label="回答"></textarea>
+  <div class="f-btns"><button id="btnFocusNext" class="f-ghost">換一個問題</button><button id="btnFocusDone" class="f-done">倒完了</button></div>
+</div>
+
+<div id="sortSheet" class="sheet" hidden>
+  <div class="sheet-h"><h1>分類</h1><button id="btnSortX" class="f-x light" aria-label="稍後再分類"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="hint">AI 先分好了，點「工作／個人／放下」可以改；名稱可以直接改字。</div>
+  <div id="sortBody"></div>
+  <div class="sheet-f"><button id="btnSortOk" class="full">確認</button></div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
@@ -349,40 +410,83 @@ function go(v) {
   window.scrollTo(0, 0);
 }
 
-// ---------- 傾倒 ----------
-$("#dump").value = localStorage.draft || "";
+// ---------- 傾倒（聊天泡泡：一句一句丟，先存在手機裡） ----------
+const fmtHM = ts => new Date(ts).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: TZ });
+const GAP_MIN = 10;  // 隔超過 10 分鐘才再顯示一次時間
+const bubbles = () => { try { return JSON.parse(localStorage.bubbles || "[]"); } catch (e) { return []; } };
+function setBubbles(b) { localStorage.bubbles = JSON.stringify(b); renderBubbles(); }
+// 舊版大輸入框留下的草稿，轉成一個泡泡，不會不見
+if ((localStorage.draft || "").trim()) { localStorage.bubbles = JSON.stringify([...bubbles(), { ts: Date.now(), text: localStorage.draft.trim() }]); localStorage.draft = ""; }
 
-// 自動蓋時間：輸入框是空的、或停頓超過 GAP_MIN 分鐘後再輸入時，在那一段前面蓋上 [HH:MM]
-// 時間是「開始寫那一段」的時間；用注音/語音等組字輸入時，會等組字結束後才插入，不會打斷輸入
-const GAP_MIN = 10;
-const nowHM = () => new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: TZ });
-let pendingStamp = null; // { pos, time }
-function armStamp(ta) {
-  if (pendingStamp) return;
-  const gap = Date.now() - Number(localStorage.lastDumpInput || 0) > GAP_MIN * 60000;
-  if (ta.value.trim() === "" || gap) pendingStamp = { pos: ta.selectionStart, time: nowHM() };
+function renderBubbles() {
+  const b = bubbles();
+  let html = "", last = 0;
+  b.forEach((x, i) => {
+    if (x.ts - last > GAP_MIN * 60000) html += `<div class="b-time">${fmtHM(x.ts)}</div>`;
+    last = x.ts;
+    html += `<button class="bubble" data-i="${i}">${esc(x.text)}</button>`;
+  });
+  $("#bubbles").innerHTML = html || `<div class="b-empty">想到什麼就寫一句送出，不用整理、不用標點。<br>亂講也沒關係，倒完再按「整理」。</div>`;
+  $("#btnGo").textContent = b.length ? `整理 ${b.length} 句` : "整理";
+  $("#btnGo").disabled = !b.length;
+  $("#dumpCount").textContent = b.length ? `已倒 ${b.length} 句 · 存在手機裡` : "";
 }
-function flushStamp(ta) {
-  if (!pendingStamp) return;
-  const { pos, time } = pendingStamp; pendingStamp = null;
-  const before = ta.value.slice(0, pos);
-  const ins = (before && !before.endsWith("\n") ? "\n" : "") + "[" + time + "] ";
-  const cur = ta.selectionStart;
-  ta.setRangeText(ins, pos, pos, "preserve");
-  ta.selectionStart = ta.selectionEnd = cur + ins.length;
-}
-$("#dump").addEventListener("beforeinput", e => { if (e.inputType.startsWith("insert")) armStamp(e.target); });
-$("#dump").addEventListener("compositionstart", e => armStamp(e.target));
-$("#dump").addEventListener("compositionend", e => {
-  flushStamp(e.target);
-  localStorage.draft = e.target.value;
+$("#bubbles").addEventListener("click", e => {
+  const el = e.target.closest(".bubble"); if (!el) return;
+  const b = bubbles(), i = +el.dataset.i;
+  if (confirm("刪掉這句？\n\n" + b[i].text)) { b.splice(i, 1); setBubbles(b); }
 });
-$("#dump").oninput = e => {
-  if (!e.isComposing) flushStamp(e.target);
-  localStorage.draft = e.target.value;
-  localStorage.lastDumpInput = Date.now();
+
+function sendLine(text) {
+  const lines = String(text || "").split("\n").map(s => s.trim()).filter(Boolean);
+  if (!lines.length) return;
+  const now = Date.now();
+  setBubbles([...bubbles(), ...lines.map(t => ({ ts: now, text: t }))]);
+  requestAnimationFrame(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }));
+}
+const dumpInput = $("#dump");
+dumpInput.value = localStorage.inputDraft || "";
+function autoGrow() { dumpInput.style.height = "auto"; dumpInput.style.height = Math.min(dumpInput.scrollHeight, 160) + "px"; }
+dumpInput.oninput = () => { localStorage.inputDraft = dumpInput.value; autoGrow(); };
+function sendInput() { sendLine(dumpInput.value); dumpInput.value = ""; localStorage.inputDraft = ""; autoGrow(); }
+$("#btnSend").onclick = () => { sendInput(); dumpInput.focus(); };
+dumpInput.addEventListener("keydown", e => {
+  // 電腦上 Enter 送出、Shift+Enter 換行；注音選字中不送
+  if (e.key === "Enter" && !e.shiftKey && !e.isComposing && e.keyCode !== 229 && !/iPhone|iPad|Android/i.test(navigator.userAgent)) { e.preventDefault(); sendInput(); }
+});
+renderBubbles(); autoGrow();
+
+// ---------- 專注模式：三分鐘、一個問題、寫到停不下來 ----------
+const FOCUS_Q = ["現在腦袋裡最吵的是什麼？", "有什麼事一直記掛著，但還沒開始？", "這週最怕忘記的是什麼？", "今天讓你卡住的是什麼？", "如果只能先處理一件事，會是哪件？", "有什麼話想說，但還沒說出口？", "最近有什麼小事讓你煩？", "現在身體感覺怎麼樣？"];
+let focusTimer = null, focusEnd = 0, focusQi = 0;
+function focusTick() {
+  const left = Math.max(0, Math.round((focusEnd - Date.now()) / 1000));
+  $("#focusTime").textContent = left ? `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}` : "時間到，想繼續也可以";
+  $("#focusRing").style.strokeDasharray = `${(left / 180) * 94.2} 94.2`;
+  if (!left) { clearInterval(focusTimer); focusTimer = null; }
+}
+function openFocus() {
+  focusQi = Math.floor(Math.random() * FOCUS_Q.length);
+  $("#focusQ").textContent = FOCUS_Q[focusQi];
+  $("#focusText").value = localStorage.focusDraft || "";
+  $("#focus").hidden = false; document.body.classList.add("noscroll");
+  focusEnd = Date.now() + 180000; clearInterval(focusTimer); focusTimer = setInterval(focusTick, 1000); focusTick();
+  setTimeout(() => $("#focusText").focus(), 50);
+}
+function closeFocus() { $("#focus").hidden = true; document.body.classList.remove("noscroll"); clearInterval(focusTimer); focusTimer = null; }
+$("#btnFocus").onclick = openFocus;
+$("#btnFocusX").onclick = closeFocus;  // 草稿留著，下次打開還在
+$("#focusText").oninput = e => localStorage.focusDraft = e.target.value;
+$("#btnFocusNext").onclick = () => { focusQi = (focusQi + 1) % FOCUS_Q.length; $("#focusQ").textContent = FOCUS_Q[focusQi]; $("#focusText").focus(); };
+$("#btnFocusDone").onclick = () => {
+  const t = $("#focusText").value.trim();
+  if (t) sendLine(t);
+  $("#focusText").value = ""; localStorage.focusDraft = "";
+  closeFocus();
+  if (t) toast("已放進傾倒，倒完按「整理」");
 };
 
+// ---------- 存原文 ----------
 // 備份：還沒確認寫進資料庫的傾倒，先留在 localStorage，下次開啟會再送一次
 const unsynced = () => { try { return JSON.parse(localStorage.unsyncedDumps || "{}"); } catch (e) { return {}; } };
 function markUnsynced(id, text) { const u = unsynced(); if (text == null) delete u[id]; else u[id] = { text, at: Date.now() }; localStorage.unsyncedDumps = JSON.stringify(u); }
@@ -398,16 +502,22 @@ function resendUnsynced() {
 }
 
 $("#btnGo").onclick = async () => {
-  const text = $("#dump").value.trim();
-  if (!text) return toast("先寫點什麼");
-  // 1. 先存原文（存在手機快取，馬上完成，不等網路）
+  if (dumpInput.value.trim()) sendInput();
+  const b = bubbles();
+  if (!b.length) return toast("先寫點什麼");
+  const text = b.map(x => `[${fmtHM(x.ts)}] ${x.text}`).join("\n");
+  // 1. 先存原文（手機快取，馬上完成，不等網路）
   const id = doc(collection(db, "users", uid, "dumps")).id;
   saveDumpDoc(id, text);
-  $("#dump").value = ""; localStorage.draft = ""; localStorage.lastDumpInput = 0; pendingStamp = null;
+  setBubbles([]);
   // 2. 再請 AI 整理；失敗也沒關係，原文已經存好
   await organize(id, text);
 };
 
+// ---------- AI 整理 → 分類（工作／個人／放下） ----------
+const WORK_RE = /(盤點|週轉金|經常費|報帳|核銷|傳票|發票|收據|請款|五金展|展覽|參展|展會|攤位|台灣館|IMD|小機團|客戶|買主|廠商|供應商|主任|總部|公文|簽呈|會議|開會|簡報|報告|LinkedIn|Facebook|粉專|發文|貼文|追蹤表|打卡|員工|同仁|同事|Nazan|Donus|Osman|花輪|Tasha|TAITRA|貿協|辦公室|辦事處|出差|邀請函|媒合|商機|B2B|SGK|薪資|合約|預算|經費|貿易中心|İTÜ|ITU)/i;
+const guessKind = t => (t.category === "work" || t.type === "work") ? "work" : (t.category === "personal" ? "personal" : (WORK_RE.test((t.title || "") + " " + (t.note || "")) ? "work" : "personal"));
+const prioStars = p => ({ high: 4, medium: 3, low: 2 }[p] || 3);
 
 async function organize(id, text, opts = {}) {
   if (organizing) return false;
@@ -419,51 +529,114 @@ async function organize(id, text, opts = {}) {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-App-Pass": localStorage.appPass || "" },
       body: JSON.stringify({ text, today: todayStr(), weekday: weekdayStr(), routine })
-    }, 30000);
+    }, 45000);
     const data = await readJson(r);
     if (!r.ok || data.error) throw new Error(data.error || r.status);
 
-    // 寫進快取就算完成，不等伺服器回應
-    const batch = writeBatch(db);
-    batch.set(doc(db, "users", uid, "dumps", id), { summary: data.summary || "", thoughts: data.thoughts || [], pending: false }, { merge: true });
-    (data.tasks || []).forEach(t => batch.set(doc(collection(db, "users", uid, "tasks")), {
-      title: t.title || "（未命名）", date: t.date || "", time: t.time || "",
-      duration: t.duration_min || 30, priority: t.priority || "medium", note: t.note || "",
-      done: false, dumpId: id, createdAt: serverTimestamp()
-    }));
-    batch.commit().catch(e => toast("任務會在網路恢復後同步：" + e.message));
-
-    const n = (data.tasks || []).length;
-    if (opts.quiet) return true;
-    $("#result").innerHTML =
-      `<button class="x" id="closeResult" aria-label="關閉">✕</button>` +
-      `<p class="summary">${esc(data.summary)}</p>` +
-      (data.thoughts?.length ? `<h2>這些不用做，只是放下</h2>` + data.thoughts.map(t => `<div class="thought">${esc(t)}</div>`).join("") : "") +
-      `<h2>${n ? `新增了 ${n} 個任務，在下面` : "這次沒有需要做的事"}</h2>`;
-    $("#result").style.display = "block";
-    $("#closeResult").onclick = () => $("#result").style.display = "none";
-    go("tasks");
+    const proposals = (data.tasks || []).map(t => {
+      const kind = guessKind(t);
+      return { title: t.title || "（未命名）", date: t.date || "", time: t.time || "", duration: t.duration_min || 30,
+        priority: t.priority || "medium", note: t.note || "", kind, stars: prioStars(t.priority) };
+    });
+    // 結果先存起來（快取，不等網路）；還沒分類確認前，不會建立任何任務
+    setDoc(doc(db, "users", uid, "dumps", id), { summary: data.summary || "", thoughts: data.thoughts || [], pending: false,
+      proposals, reviewed: !proposals.length }, { merge: true }).catch(e => toast("會在網路恢復後同步：" + e.message));
+    if (!opts.quiet) openSort({ id, summary: data.summary || "", thoughts: data.thoughts || [], proposals });
     return true;
   } catch (e) {
     toast("原文已存好 ✓ AI 整理晚點再說：" + e.message);
     return false;
   } finally {
-    organizing = false; btn.disabled = false; btn.textContent = "整理"; renderPending();
+    organizing = false; renderBubbles(); renderPending();
   }
 }
 
-// 還沒整理的傾倒：網路好的時候一鍵補整理
+// 分類畫面
+let sorting = null;
+function openSort(s) {
+  sorting = { ...s, proposals: s.proposals.map(p => ({ ...p })) };
+  renderSort();
+  $("#sortSheet").hidden = false; document.body.classList.add("noscroll");
+  $("#sortSheet").scrollTop = 0;
+}
+function closeSort() { $("#sortSheet").hidden = true; document.body.classList.remove("noscroll"); sorting = null; renderPending(); }
+const KINDS = [["work", "工作", "→ 工作追蹤表（Eva）"], ["personal", "個人", "→ 我的任務"], ["drop", "放下", "不用做"]];
+function renderSort() {
+  const s = sorting; if (!s) return;
+  const meta = p => [p.date ? p.date.slice(5).replace("-", "/") : "", p.time, p.note].filter(Boolean).map(esc).join(" · ");
+  let html = s.summary ? `<p class="summary">${esc(s.summary)}</p>` : "";
+  for (const [k, name, hint] of KINDS) {
+    const list = s.proposals.map((p, i) => ({ p, i })).filter(x => x.p.kind === k);
+    if (!list.length) continue;
+    html += `<h2 class="k-${k}">${name}<span class="cnt">${list.length}</span><span class="k-hint">${esc(hint)}</span></h2>` + list.map(({ p, i }) => `
+      <div class="sc k-${p.kind}" data-i="${i}">
+        <input class="sc-t" data-f="title" value="${esc(p.title)}" aria-label="任務名稱">
+        <div class="sc-row"><span class="meta">${meta(p)}</span>
+          <span class="pills">${KINDS.map(([kk, nn]) => `<button class="pill ${kk === p.kind ? "on k-" + kk : ""}" data-k="${kk}">${nn}</button>`).join("")}</span></div>
+        ${p.kind === "work" ? `<div class="sc-stars" aria-label="重要性">${[1, 2, 3, 4, 5].map(n => `<button class="st ${n <= p.stars ? "on" : ""}" data-s="${n}" aria-label="${n} 顆星">★</button>`).join("")}</div>` : ""}
+      </div>`).join("");
+  }
+  if (!s.proposals.length) html += `<div class="empty">這次沒有需要做的事</div>`;
+  if (s.thoughts?.length) html += `<h2>這些不用做，只是放下</h2>` + s.thoughts.map(t => `<div class="thought">${esc(t)}</div>`).join("");
+  $("#sortBody").innerHTML = html;
+  const n = s.proposals.filter(p => p.kind !== "drop").length;
+  $("#btnSortOk").textContent = n ? `確認，送出 ${n} 個任務` : "完成";
+}
+$("#sortBody").addEventListener("click", e => {
+  const card = e.target.closest(".sc"); if (!card || !sorting) return;
+  const p = sorting.proposals[+card.dataset.i];
+  const k = e.target.closest("[data-k]"), st = e.target.closest("[data-s]");
+  if (k) { p.kind = k.dataset.k; renderSort(); }
+  if (st) { const n = +st.dataset.s; p.stars = p.stars === n ? 0 : n; renderSort(); }
+});
+$("#sortBody").addEventListener("input", e => {
+  const card = e.target.closest(".sc"); if (!card || !sorting) return;
+  sorting.proposals[+card.dataset.i].title = e.target.value;
+});
+$("#btnSortX").onclick = () => { toast("先放著，之後在傾倒頁按「去分類」"); closeSort(); };
+
+$("#btnSortOk").onclick = async () => {
+  const s = sorting; if (!s) return;
+  let work = s.proposals.filter(p => p.kind === "work" && p.title.trim());
+  const personal = s.proposals.filter(p => p.kind === "personal" && p.title.trim());
+  if (work.length && !officeAuth.currentUser) {
+    if (!confirm(`還沒連結工作追蹤表。\n${work.length} 個工作任務先放進「我的任務」？之後可以再一個個移過去。\n（按「取消」去設定連結）`)) { closeSort(); return go("set"); }
+    personal.push(...work); work = [];
+  }
+  const btn = $("#btnSortOk"); btn.disabled = true; btn.textContent = "送出中…";
+  // 工作任務：寫到追蹤表；被拒絕的改放個人，不會不見
+  const base = Date.now(); let workOk = 0;
+  await Promise.all(work.map(async (p, i) => {
+    try { await writeWorkTask(p, base + i); workOk++; }
+    catch (e) { personal.push(p); toast("有工作任務送不進追蹤表，先放在我的任務：" + (e.code === "permission-denied" ? "沒有寫入權限" : e.message)); }
+  }));
+  const batch = writeBatch(db);
+  personal.forEach(p => batch.set(doc(collection(db, "users", uid, "tasks")), {
+    title: p.title.trim(), date: p.date, time: p.time, duration: p.duration, priority: p.priority, note: p.note,
+    done: false, dumpId: s.id, createdAt: serverTimestamp()
+  }));
+  batch.set(doc(db, "users", uid, "dumps", s.id), { reviewed: true, proposals: s.proposals }, { merge: true });
+  batch.commit().catch(e => toast("會在網路恢復後同步：" + e.message));
+  btn.disabled = false;
+  closeSort();
+  toast([workOk ? `${workOk} 個進工作追蹤表` : "", personal.length ? `${personal.length} 個進我的任務` : ""].filter(Boolean).join("、") || "完成");
+  go("tasks");
+};
+
+// 傾倒頁上方：還沒 AI 整理的、整理好還沒分類的
 function renderPending() {
   const box = $("#pendingBox"); if (!box) return;
-  const list = dumps.filter(d => d.pending);
-  if (!list.length) { box.innerHTML = ""; return; }
-  box.innerHTML = `<div class="suggest"><div class="fe-h">已存好、還沒 AI 整理：${list.length} 則</div>
-    <div class="row"><button class="sm" id="btnRetry">${organizing ? "整理中…" : "現在整理"}</button></div></div>`;
-  $("#btnRetry").onclick = async () => {
+  const raw = dumps.filter(d => d.pending), toSort = dumps.filter(d => d.reviewed === false && d.proposals?.length);
+  let html = "";
+  if (toSort.length) html += `<div class="suggest"><div class="fe-h">整理好、還沒分類：${toSort.length} 則</div><div class="row"><button class="sm" id="btnToSort">去分類</button></div></div>`;
+  if (raw.length) html += `<div class="suggest"><div class="fe-h">已存好、還沒 AI 整理：${raw.length} 則</div><div class="row"><button class="sm" id="btnRetry">${organizing ? "整理中…" : "現在整理"}</button></div></div>`;
+  box.innerHTML = html;
+  if ($("#btnToSort")) $("#btnToSort").onclick = () => { const d = toSort[toSort.length - 1]; openSort({ id: d.id, summary: d.summary, thoughts: d.thoughts, proposals: d.proposals }); };
+  if ($("#btnRetry")) $("#btnRetry").onclick = async () => {
     const todo = dumps.filter(d => d.pending).reverse();
     let ok = 0;
     for (const d of todo) { if (await organize(d.id, d.text, { quiet: true })) ok++; else break; }
-    if (ok) { toast(`整理好 ${ok} 則，任務已加入`); go("tasks"); }
+    if (ok) toast(`整理好 ${ok} 則，按「去分類」確認`);
   };
 }
 
@@ -583,25 +756,30 @@ async function ensureWorkMember() {
   setDoc(ref, { members: [...list, { name: WORK_ASSIGNEE, c }], updatedAt: serverTimestamp() }).catch(() => {});
 }
 
-async function moveToWork(t, ref, btn) {
+// 寫一筆到工作追蹤表；寫進快取就算完成，8 秒內被拒絕才丟錯
+async function writeWorkTask(t, id) {
   const u = officeAuth.currentUser;
-  if (!u) { toast("先到設定連結工作追蹤表"); return go("set"); }
-  if (!confirm(`把「${t.title}」移到工作追蹤表（${WORK_ASSIGNEE}）？\n移過去之後，這裡的任務會刪掉。`)) return;
-  btn.disabled = true; btn.textContent = "移動中…";
-  const id = Date.now();
+  if (!u) throw new Error("還沒連結工作追蹤表");
   const deadline = t.date ? t.date.slice(5).replace("-", "/") + (t.time ? " " + t.time : "") : "";
   const work = {
-    id, assignee: WORK_ASSIGNEE, title: t.title || "", company: "", contact: "", phone: "",
+    id, assignee: WORK_ASSIGNEE, title: (t.title || "").trim(),
+    stars: t.stars ?? (t.starred ? 5 : prioStars(t.priority)), company: "", contact: "", phone: "",
     status: "Not Started", checkpoint: "", deadline, currentStatus: t.note && t.note !== "未來日記的一票" ? t.note : "",
     proposedSolution: "", managerNotes: "來自傾倒 " + todayStr(),
     updatedBy: u.email || "", updatedAt: serverTimestamp()
   };
+  const w = setDoc(doc(officeDb, "taskTracker", String(id)), work);
+  await withTimeout(w, 8000, "slow").catch(e => { if (e.message !== "slow") throw e; w.catch(err => toast("工作追蹤表同步失敗：" + err.message)); });
+  ensureWorkMember();
+}
+
+async function moveToWork(t, ref, btn) {
+  if (!officeAuth.currentUser) { toast("先到設定連結工作追蹤表"); return go("set"); }
+  if (!confirm(`把「${t.title}」移到工作追蹤表（${WORK_ASSIGNEE}）？\n移過去之後，這裡的任務會刪掉。`)) return;
+  btn.disabled = true; btn.textContent = "移動中…";
   try {
-    // 寫進快取立刻生效；8 秒內被拒絕（例如沒權限）才算失敗，單純網路慢就讓它背景同步
-    const w = setDoc(doc(officeDb, "taskTracker", String(id)), work);
-    await withTimeout(w, 8000, "slow").catch(e => { if (e.message !== "slow") throw e; w.catch(err => toast("工作追蹤表同步失敗：" + err.message)); });
+    await writeWorkTask(t, Date.now());
     deleteDoc(ref);
-    ensureWorkMember();
     toast(`已移到工作追蹤表的「${WORK_ASSIGNEE}」底下`);
   } catch (e) {
     toast("移動失敗，任務還留在這裡：" + (e.code === "permission-denied" ? "沒有寫入權限" : e.message));
